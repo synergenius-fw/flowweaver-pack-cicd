@@ -1,0 +1,44 @@
+{
+  "name": "@synergenius/flowweaver-pack-cicd",
+  "version": "0.1.0",
+  "description": "CI/CD pipeline node types for Flow Weaver — checkout, setup, test, build, deploy, Docker, and more",
+  "keywords": [
+    "flowweaver-marketplace-pack",
+    "flow-weaver",
+    "cicd",
+    "github-actions",
+    "gitlab-ci",
+    "pipeline",
+    "devops"
+  ],
+  "flowWeaver": {
+    "type": "marketplace-pack",
+    "engineVersion": ">=0.9.0",
+    "categories": ["cicd", "automation", "devops"]
+  },
+  "peerDependencies": {
+    "@synergenius/flow-weaver": ">=0.9.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist",
+    "flowweaver.manifest.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "pack:manifest": "flow-weaver market pack",
+    "prepublishOnly": "npm run build && npm run pack:manifest"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/synergenius-fw/flowweaver-pack-cicd"
+  }
+}
