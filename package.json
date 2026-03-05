@@ -42,7 +42,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.0.0"
   },
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
     "url": "https://github.com/synergenius-fw/flowweaver-pack-cicd"
