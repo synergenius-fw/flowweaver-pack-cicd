@@ -60,6 +60,9 @@ export const cicdTagHandler: TTagHandlerFn = (tagName, comment, ctx) => {
     case 'includes':
       parseIncludes(text, d, warnings);
       break;
+    case 'rule':
+      parseRule(text, d, warnings);
+      break;
     case '_cicdTrigger':
       parseCicdTrigger(text, d, warnings);
       break;
@@ -288,7 +291,7 @@ function parseJob(text: string, d: DeployMap, warnings: string[]): void {
     variables?: Record<string, string>; tags?: string[]; beforeScript?: string[];
     rules?: Array<{ if?: string; when?: string; allowFailure?: boolean; variables?: Record<string, string>; changes?: string[] }>;
     coverage?: string; reports?: Array<{ type: string; path: string }>;
-    runner?: string; extends?: string;
+    runner?: string; extends?: string; stage?: string; retryWhen?: string[];
   };
 
   const jobs = (d['jobs'] as JobConfig[] | undefined) ?? [];
@@ -332,6 +335,12 @@ function parseJob(text: string, d: DeployMap, warnings: string[]): void {
         break;
       case 'extends':
         jc.extends = value;
+        break;
+      case 'stage':
+        jc.stage = value;
+        break;
+      case 'retry_when':
+        jc.retryWhen = value.split(',').map(s => s.trim()).filter(Boolean);
         break;
       case 'variables': {
         jc.variables = jc.variables || {};
@@ -476,6 +485,20 @@ function parseIncludes(text: string, d: DeployMap, warnings: string[]): void {
   } else {
     warnings.push(`Invalid @includes format: @includes ${text}. Expected: @includes local="path" or @includes template="name"`);
   }
+}
+
+function parseRule(text: string, d: DeployMap, _warnings: string[]): void {
+  const rule: { if?: string; when?: string; changes?: string[] } = {};
+  const ifMatch = text.match(/if\s*=\s*"((?:[^"\\]|\\.)*)"/);
+  if (ifMatch) rule.if = ifMatch[1];
+  const whenMatch = text.match(/when\s*=\s*(\S+)/);
+  if (whenMatch) rule.when = whenMatch[1];
+  const changesMatch = text.match(/changes\s*=\s*"([^"]+)"/);
+  if (changesMatch) rule.changes = changesMatch[1].split(',').map(s => s.trim()).filter(Boolean);
+
+  const rules = (d['workflowRules'] as typeof rule[] | undefined) ?? [];
+  d['workflowRules'] = rules;
+  rules.push(rule);
 }
 
 function parseCicdTrigger(text: string, d: DeployMap, warnings: string[]): void {

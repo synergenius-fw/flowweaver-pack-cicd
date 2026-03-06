@@ -34,13 +34,15 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "vitest run",
     "pack:manifest": "flow-weaver market pack",
     "prepublishOnly": "npm run build && npm run pack:manifest",
     "release": "tsx scripts/release.ts"
   },
   "devDependencies": {
     "tsx": "^4.21.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.18"
   },
   "license": "SEE LICENSE IN LICENSE",
   "repository": {

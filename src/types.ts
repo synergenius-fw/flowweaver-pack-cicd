@@ -53,6 +53,8 @@ export interface CICDJob {
   downloadArtifacts?: string[];
   /** Maximum retry count on failure (from @job) */
   retry?: number;
+  /** Conditions under which to retry (from @job retry_when) */
+  retryWhen?: string[];
   /** Whether this job can fail without failing the pipeline (from @job) */
   allowFailure?: boolean;
   /** Job-level timeout duration (from @job) */

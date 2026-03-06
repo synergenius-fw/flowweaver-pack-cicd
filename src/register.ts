@@ -20,7 +20,7 @@ tagHandlerRegistry.register(
   [
     'secret', 'runner', 'cache', 'artifact', 'environment', 'matrix',
     'service', 'concurrency', 'job', 'stage', 'variables',
-    'before_script', 'tags', 'includes', '_cicdTrigger',
+    'before_script', 'tags', 'includes', 'rule', '_cicdTrigger',
   ],
   'cicd',
   'workflow',

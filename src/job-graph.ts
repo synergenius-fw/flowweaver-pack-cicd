@@ -83,6 +83,9 @@ export function buildJobGraph(ast: TWorkflowAST): CICDJob[] {
   }
 
   // Apply @job configs
+  // The tag handler produces `stage` and `retryWhen` fields that aren't in
+  // the core TCICDJobConfig type yet, so we cast to access them.
+  type ExtendedJobConfig = { stage?: string; retryWhen?: string[] };
   const jobConfigs = ast.options?.cicd?.jobs;
   if (jobConfigs) {
     for (const jc of jobConfigs) {
@@ -99,6 +102,9 @@ export function buildJobGraph(ast: TWorkflowAST): CICDJob[] {
       if (jc.reports) job.reports = jc.reports;
       if (jc.runner) job.runner = jc.runner;
       if (jc.extends) job.extends = jc.extends;
+      const ext = jc as unknown as ExtendedJobConfig;
+      if (ext.stage) job.stage = ext.stage;
+      if (ext.retryWhen) job.retryWhen = ext.retryWhen;
     }
   }
 
