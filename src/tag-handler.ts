@@ -372,7 +372,7 @@ function parseJob(text: string, d: DeployMap, warnings: string[]): void {
         break;
       case 'rules':
         jc.rules = jc.rules || [];
-        jc.rules.push({ if: value });
+        jc.rules.push({ if: value.replace(/\\"/g, '"').replace(/\\\\/g, '\\') });
         break;
       case 'when': {
         jc.rules = jc.rules || [];
@@ -544,7 +544,7 @@ function parseIncludes(text: string, d: DeployMap, warnings: string[]): void {
 function parseRule(text: string, d: DeployMap, _warnings: string[]): void {
   const rule: { if?: string; when?: string; changes?: string[] } = {};
   const ifMatch = text.match(/if\s*=\s*"((?:[^"\\]|\\.)*)"/);
-  if (ifMatch) rule.if = ifMatch[1];
+  if (ifMatch) rule.if = ifMatch[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\');
   const whenMatch = text.match(/when\s*=\s*(\S+)/);
   if (whenMatch) rule.when = whenMatch[1];
   const changesMatch = text.match(/changes\s*=\s*"([^"]+)"/);
