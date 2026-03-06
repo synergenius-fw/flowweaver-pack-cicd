@@ -14,7 +14,11 @@ import {
   getDeclaredSecrets,
   getReferencedSecrets,
   getJobNames,
+  isCICDWorkflow,
 } from './detection.js';
+
+// Re-export so manifest-based discovery can load detect + rules from a single file
+export { isCICDWorkflow };
 
 export const secretNotDeclaredRule: TValidationRule = {
   name: 'CICD_SECRET_NOT_DECLARED',
