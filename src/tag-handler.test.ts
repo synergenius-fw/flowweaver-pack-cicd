@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { cicdTagHandler } from './tag-handler.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function makeCtx() {
   return { deploy: {} as Record<string, unknown>, warnings: [] as string[] };
@@ -92,5 +97,72 @@ describe('Bug 5: @rule tag parsing', () => {
     expect(rules).toHaveLength(2);
     expect(rules[0].when).toBe('never');
     expect(rules[1].when).toBe('always');
+  });
+
+  it('unescapes escaped double quotes in @rule if= values', () => {
+    const ctx = makeCtx();
+    cicdTagHandler('rule', 'if="$VAR == \\"production\\"" when=never', ctx);
+    const rules = ctx.deploy['workflowRules'] as Array<{ if?: string; when?: string }>;
+    expect(rules[0].if).toBe('$VAR == "production"');
+  });
+
+  it('unescapes escaped backslashes in @rule if= values', () => {
+    const ctx = makeCtx();
+    cicdTagHandler('rule', 'if="$PATH =~ /\\\\bin/" when=always', ctx);
+    const rules = ctx.deploy['workflowRules'] as Array<{ if?: string; when?: string }>;
+    expect(rules[0].if).toBe('$PATH =~ /\\bin/');
+  });
+});
+
+describe('Bug 5b: @job rules= escaped quote unescaping', () => {
+  it('unescapes escaped double quotes in job-level rules=', () => {
+    const ctx = makeCtx();
+    cicdTagHandler('job', 'deploy rules="$ENV == \\"prod\\""', ctx);
+    const jobs = ctx.deploy['jobs'] as Array<{ id: string; rules?: Array<{ if: string }> }>;
+    expect(jobs[0].rules).toHaveLength(1);
+    expect(jobs[0].rules![0].if).toBe('$ENV == "prod"');
+  });
+});
+
+describe('Bug 1: manifest tagHandlers registration', () => {
+  it('manifest declares all 16 tag handlers', () => {
+    const manifestPath = resolve(__dirname, '..', 'flowweaver.manifest.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    const tags: string[] = manifest.tagHandlers[0].tags;
+
+    const expected = [
+      'secret', 'runner', 'cache', 'artifact', 'environment', 'matrix',
+      'service', 'concurrency', 'job', 'stage', 'variables', 'before_script',
+      'tags', 'includes', 'rule', '_cicdTrigger',
+    ];
+    for (const tag of expected) {
+      expect(tags).toContain(tag);
+    }
+    expect(tags).toHaveLength(16);
+  });
+
+  it('cicdTagHandler handles all declared tags without crashing', () => {
+    const safeTags: Array<[string, string]> = [
+      ['secret', 'MY_SECRET vault="kv/data/ci" key="token"'],
+      ['runner', 'ubuntu-latest'],
+      ['cache', 'npm'],
+      ['artifact', 'build-output path="dist/"'],
+      ['environment', 'production'],
+      ['matrix', 'node="18,20,22"'],
+      ['service', 'image="postgres:15"'],
+      ['concurrency', 'deploy-prod'],
+      ['job', 'build'],
+      ['stage', 'test build deploy'],
+      ['variables', 'CI_DEBUG=true'],
+      ['before_script', 'npm ci'],
+      ['tags', 'docker linux'],
+      ['includes', 'local="/ci/base.yml"'],
+      ['rule', 'when=always'],
+    ];
+    for (const [tag, text] of safeTags) {
+      const ctx = makeCtx();
+      cicdTagHandler(tag, text, ctx);
+      expect(ctx.warnings).toHaveLength(0);
+    }
   });
 });

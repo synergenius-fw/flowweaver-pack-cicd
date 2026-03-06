@@ -65,11 +65,29 @@ export function buildJobGraph(ast: TWorkflowAST): CICDJob[] {
       const fromNodeType = ast.instances.find(i => i.id === conn.from.node)?.nodeType;
       const nt = fromNodeType ? nodeTypeLookup.get(fromNodeType) : undefined;
       const portDef = nt?.outputs?.[conn.from.port];
+      let portMeta = portDef?.metadata as Record<string, unknown> | undefined;
+
+      // Fallback: extract port metadata from functionText when the annotation doesn't carry it
+      if (!portMeta && nt?.functionText) {
+        const lineMatch = nt.functionText.match(
+          new RegExp(`@port\\s+OUT\\.${conn.from.port}\\b([^\\n]*)`)
+        );
+        if (lineMatch) {
+          const kvPattern = /(\w+)\s*:\s*"([^"]*)"/g;
+          let kv;
+          while ((kv = kvPattern.exec(lineMatch[1])) !== null) {
+            if (!portMeta) portMeta = {};
+            const val = kv[2];
+            portMeta[kv[1]] = val === 'true' ? true : val === 'false' ? false : val;
+          }
+        }
+      }
+
       crossJobPorts.push({
         fromJob,
         toJob,
         portName: conn.from.port,
-        portMeta: portDef?.metadata as Record<string, unknown> | undefined,
+        portMeta,
         dataType: portDef?.dataType,
       });
     }
