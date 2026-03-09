@@ -3,7 +3,7 @@
   "version": "0.2.8",
   "description": "CI/CD pipeline infrastructure for Flow Weaver: tag handler, validation rules, job graph builder, runtime code generator, and executable CI/CD node types",
   "keywords": [
-    "flowweaver-marketplace-pack",
+    "flow-weaver-marketplace-pack",
     "flow-weaver",
     "cicd",
     "github-actions",
